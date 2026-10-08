@@ -186,3 +186,23 @@ What to try on device, in order: Low-End preset → internal resolution below
 Sustained-Performance mode OFF for peak-hungry games. Per-game overrides beat
 global changes. FPS effect of (1)–(3) is UNVERIFIED UNTIL HARDWARE TESTING —
 A/B on device with the perf overlay before calling it a win.
+
+## 9. Per-title graphics defaults (Demon's Souls)
+
+Demon's Souls (all 7 serials: BLUS30443, BLES00932, BCJS30022, BCAS20071,
+NPUB30910, NPEB01202, NPJA00102) ships Write Color Buffers ON via
+`ConfigDatabase.LOCAL_OVERRIDES`, applied whether or not the RPCS3 config
+database was ever downloaded. Evidence: the setting's own tooltip
+(`rpcs3qt/tooltips.h`) calls it required for this title (missing graphics,
+broken lighting otherwise). Menus are mostly 2D so they look fine without
+it; the corruption appears when 3D gameplay starts.
+
+Cost note for tilers: WCB forces a readback of every color buffer, so it is
+deliberately per-title, never global.
+
+If gameplay still stalls after the graphics are correct, the emulog (in-app
+Save Log, no ADB needed) distinguishes the remaining mechanisms:
+`nv406e::semaphore_acquire has timed out` (producer/consumer desync — note
+first_observed vs last_observed), `Dubious query data pushed to cond render`
+(pending occlusion queries), video-memory pressure/eviction lines, or
+`wait_for_fence` errors. Send that log before any further renderer change.

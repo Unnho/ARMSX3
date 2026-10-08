@@ -181,6 +181,27 @@ object ConfigDatabase {
         // session. The EU disc is the same game and was not tested on its own.
         "BLUS30833" to "Core:\n  SPU Cache: false\n",
         "BLES01395" to "Core:\n  SPU Cache: false\n",
+
+        // Demon's Souls: Write Color Buffers on.
+        //
+        // The in-repo tooltip for this setting (rpcs3qt/tooltips.h) names this title
+        // outright: required, otherwise missing graphics and broken lighting. Menus
+        // are mostly 2D overlays so they look fine without it; the corruption shows
+        // up when 3D gameplay starts, which matches the reported "menu works,
+        // gameplay glitches" shape. The global default is off and no database entry
+        // is guaranteed (it depends on the download), so a fresh install plays the
+        // opening blind unless the user already knows the toggle.
+        //
+        // All 7 serials (US/EU/JP/Asia discs + US/EU/JP PSN), same list the
+        // Archstones redirects in GameDefaults use. Nothing else is set here:
+        // accurate ZCULL stats stay at their default, per the same tooltip.
+        "BLUS30443" to "Video:\n  Write Color Buffers: true\n",
+        "BLES00932" to "Video:\n  Write Color Buffers: true\n",
+        "BCJS30022" to "Video:\n  Write Color Buffers: true\n",
+        "BCAS20071" to "Video:\n  Write Color Buffers: true\n",
+        "NPUB30910" to "Video:\n  Write Color Buffers: true\n",
+        "NPEB01202" to "Video:\n  Write Color Buffers: true\n",
+        "NPJA00102" to "Video:\n  Write Color Buffers: true\n",
     )
 
     /**
