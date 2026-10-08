@@ -156,3 +156,33 @@ change + docs). No host compiler run claims device behaviour.
 
 Verified on Mali-G615 hardware: **nothing yet — UNVERIFIED UNTIL HARDWARE
 TESTING.** Do not treat APK assembly as acceptance.
+
+## 8. Performance (Mali-G615)
+
+Only light titles (e.g. GTA SA) run full speed; heavier games are slow. The
+defaults were audited and are already mobile-sane (LLVM PPU/SPU, 100%
+resolution, MSAA forced off on Android, async shaders, no async texture
+streaming, framegen off), so this is addressed at the renderer + preset level:
+
+1. HW conditional rendering is disabled on Mali (`is_MALI()`,
+   `vkutils/device.cpp`), same fallback desktop uses without the extension.
+   Why: on a tiler the cond-render buffer barrier ends the render pass, and
+   aggregation barriers were measured closing ~half the passes in a frame —
+   each close is a tile store + reload. This path is also the only recorder
+   of `vkCmdCopyQueryPoolResults` with `WAIT_BIT`, which hangs the GPU (not
+   the caller) if a query never resolves. Trade: occlusion stops culling
+   draws (more fragment work) in exchange for far fewer pass closes.
+2. `cond_render_blocked_by_driver` (`VKHelpers.cpp`) covers Mali too.
+   REQUIRED companion to (1): without it, Relaxed ZCULL Sync would enable
+   emulated predication while the predicate buffer is never built, and the
+   vertex shader would read a zeroed scratch buffer and kill every draw
+   (black screen, audio/overlays running).
+3. The one-tap Low-End preset (`Settings.lowEndPreset`) now also sets PS3
+   Relaxed ZCULL Sync (fewer forced occlusion syncs/queue flushes on tilers).
+   Safe with (1)+(2): emulated predication stays off on Mali.
+
+What to try on device, in order: Low-End preset → internal resolution below
+100% (biggest lever) → Disable ZCull Occlusion Queries (accuracy cost) →
+Sustained-Performance mode OFF for peak-hungry games. Per-game overrides beat
+global changes. FPS effect of (1)–(3) is UNVERIFIED UNTIL HARDWARE TESTING —
+A/B on device with the perf overlay before calling it a win.
