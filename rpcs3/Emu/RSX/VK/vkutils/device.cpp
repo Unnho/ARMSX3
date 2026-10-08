@@ -395,6 +395,38 @@ namespace vk
 		}
 #endif
 
+		// ARMSX3: Mali startup summary (log-only, no behaviour change).
+		//
+		// Mali GPUs (e.g. G615) run on the SYSTEM driver: the custom-driver path in
+		// vk_android_loader exists for Adreno/Turnip packs only, so a Mali device
+		// answering while a custom driver was requested means the request fell back
+		// silently, exactly like the Adreno case above. There is no bundled
+		// Mali/PanVK driver to load and none is attempted.
+		//
+		// The values below are the probed capabilities this session will actually
+		// run with. They are logged together because Mali failures are otherwise
+		// silent (GPU faults inside the blob, no VK_ERROR_DEVICE_LOST) and the
+		// individual probes are scattered across this function.
+		if (is_MALI(get_driver_vendor()))
+		{
+#ifdef __ANDROID__
+			if (vk::android::using_custom_driver())
+			{
+				rsx_log.error("A custom Vulkan driver was requested, but the driver in use is Mali's own. "
+					"Custom driver packs are Adreno-only, so this session is running the SYSTEM driver.");
+			}
+#endif
+			rsx_log.notice("Mali GPU detected: tile-based path (no async compute, no passthrough DMA); "
+				"framebuffer loops: %s, float16: %s, memory budget: %s, sync2: %s, unsized arrays: %s, "
+				"descriptor update-after-bind mask: 0x%llx.",
+				optional_features_support.framebuffer_loops ? "enabled" : "disabled",
+				shader_types_support.allow_float16 ? "native" : "emulated with float32",
+				optional_features_support.memory_budget ? "available" : "UNAVAILABLE (eviction judges heap size)",
+				optional_features_support.synchronization_2 ? "available" : "unavailable",
+				unsized_array_support ? "supported" : "UNSUPPORTED (unsized uniform-array shaders cannot compile)",
+				static_cast<unsigned long long>(descriptor_indexing_support.update_after_bind_mask));
+		}
+
 		if (get_driver_vendor() == driver_vendor::RADV && get_name().find("LLVM 8.0.0") != umax)
 		{
 			// Serious driver bug causing black screens
