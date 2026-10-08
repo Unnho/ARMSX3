@@ -531,12 +531,19 @@ namespace vk
 		// barriers closed 42 of the 91 render passes in a measured frame, and closing a pass on
 		// a tiler costs a tile store and reload.
 		//
+		// Mali is a tiler too, so the same churn applies there, along with the same
+		// GPU-side wait hazard: this path is the only recorder of
+		// vkCmdCopyQueryPoolResults with VK_QUERY_RESULT_WAIT_BIT, and a query that
+		// never resolves hangs the GPU rather than the caller (copying queries
+		// inside a pass is itself undefined on a tiler). Mali therefore joins the
+		// fallback, narrowly gated on is_MALI() rather than on all mobile parts.
+		//
 		// Both drivers therefore fall back to thread::begin_conditional_rendering, which is what
 		// desktop already does wherever the extension is absent.
 		if (optional_features_support.conditional_rendering &&
-			(get_driver_vendor() == driver_vendor::ADRENO || get_driver_vendor() == driver_vendor::TURNIP))
+			(is_MALI(get_driver_vendor()) || get_driver_vendor() == driver_vendor::ADRENO || get_driver_vendor() == driver_vendor::TURNIP))
 		{
-			rsx_log.notice("Conditional rendering disabled: unreliable on this driver (device loss on Turnip, unbounded render pass allocations on Adreno).");
+			rsx_log.notice("Conditional rendering disabled: unreliable on this driver (device loss on Turnip, unbounded render pass allocations on Adreno, render-pass churn and GPU-side query waits on Mali tilers).");
 			optional_features_support.conditional_rendering = false;
 		}
 	}

@@ -122,10 +122,16 @@ namespace vk
 		// already documents: more GPU work, and a session that survives.
 		// Straight off the GPU: the cached g_driver_vendor is not assigned until further down
 		// this function, so get_driver_vendor() would still hold the previous device's value.
+		// Mali joins Adreno/Turnip here because device probing disables the extension on
+		// Mali tilers as well (render-pass churn, GPU-side query waits): without this,
+		// Relaxed ZCULL Sync would enable emulated predication while the predicate
+		// buffer is never built, and the vertex shader would read a zeroed scratch
+		// buffer and kill every draw (black screen with audio/overlays running).
 		const auto cond_render_vendor = g_render_device->gpu().get_driver_vendor();
 		const bool cond_render_blocked_by_driver =
 			cond_render_vendor == vk::driver_vendor::ADRENO ||
-			cond_render_vendor == vk::driver_vendor::TURNIP;
+			cond_render_vendor == vk::driver_vendor::TURNIP ||
+			vk::is_MALI(cond_render_vendor);
 
 		g_drv_emulate_cond_render = (g_cfg.video.relaxed_zcull_sync &&
 			!g_render_device->get_conditional_render_support() &&
