@@ -64,14 +64,23 @@ object GpuInfo {
 
     /**
      * Suggested driver source for [renderer], or null when no custom driver
-     * applies (custom Turnip packs are Adreno-only; Mali/Xclipse/PowerVR run the
-     * built-in system driver). [sourceLabel] should match a DriverSource name in
-     * CustomDriver.SOURCES so the user can find it in the list -- it is displayed
-     * verbatim. (It previously said it matched friendlyDriverSource(), which does
-     * not exist anywhere in the tree.)
+     * applies (Turnip packs are Adreno-only and PanVK packs are Mali-only;
+     * Xclipse/PowerVR run the built-in system driver). [sourceLabel] should
+     * match a DriverSource name in CustomDriver.SOURCES so the user can find
+     * it in the list -- it is displayed verbatim. (It previously said it
+     * matched friendlyDriverSource(), which does not exist anywhere in the
+     * tree.)
+     *
+     * Mali points at the experimental PanVK pack, which has no releases-page
+     * source yet: import the .adpkg.zip via Import. The label says so rather
+     * than naming a list the user cannot find.
      */
     fun recommendation(renderer: String?): Recommendation? {
         val r = renderer ?: return null
+        if (r.contains("Mali", ignoreCase = true)) return Recommendation(
+            "PanVK (Import .adpkg, experimental)",
+            "Open PanVK driver for Mali Valhall/CSF. Import the pack, select it, restart; " +
+                "system driver stays the default. Beta: measure before trusting.")
         if (!r.contains("Adreno", ignoreCase = true)) return null
         val model = Regex("""(\d{3,4})""").find(r.substringAfter("Adreno", ""))?.value?.toIntOrNull()
         return when {

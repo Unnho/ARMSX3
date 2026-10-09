@@ -272,12 +272,13 @@ dependencies {
     // Discord Social SDK, staged locally rather than pulled from a repo: it is
     // proprietary and distributed per-application from the developer portal.
     //
-    // Its Java classes are resolved by name from the SDK's own native code
-    // (com.discord.socialsdk.AuthenticationClientCallback and friends), so
-    // without this the :discord process aborts with ClassNotFoundException even
-    // though the .so links fine. proguard-rules.pro keeps them from being
-    // renamed for the same reason.
-    implementation(files("libs/discord_partner_sdk.aar"))
+    // Absent from public checkouts by design (Discord's terms permit shipping it
+    // inside a working application but not republishing the raw SDK). Every use
+    // is already behind DiscordNative.load(), so without it the feature simply
+    // reports unavailable at runtime.
+    if (file("libs/discord_partner_sdk.aar").exists()) {
+        implementation(files("libs/discord_partner_sdk.aar"))
+    }
 
     implementation(libs.androidx.browser)
 

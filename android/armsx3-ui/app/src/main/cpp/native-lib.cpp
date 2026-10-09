@@ -863,7 +863,15 @@ Java_net_rpcsx_RPCSX_uninstallGame(JNIEnv *env, jobject, jstring jpath) {
 extern "C" JNIEXPORT jboolean JNICALL
 Java_net_rpcsx_RPCSX_supportsCustomDriverLoading(JNIEnv *env,
                                                  jobject instance) {
-  return access("/dev/kgsl-3d0", F_OK) == 0;
+  // Adreno (kgsl) and Mali (mali0) kernel nodes both accept a user-supplied
+  // ICD through adrenotools CUSTOM, which is a plain dlopen plus hooks --
+  // Turnip packs for Adreno and PanVK packs for Mali load through this same
+  // path. Other vendors have no such pack ecosystem, so the UI keeps hiding
+  // the option there. "Can load" only; selection stays explicitly opt-in and
+  // the default stays the system driver.
+  (void) env;
+  (void) instance;
+  return access("/dev/kgsl-3d0", F_OK) == 0 || access("/dev/mali0", F_OK) == 0;
 }
 
 // Force the Adreno GPU to its maximum clocks, or release it back to normal scaling.

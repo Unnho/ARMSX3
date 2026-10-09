@@ -2504,6 +2504,9 @@ data class Settings(
          *    - HW ROV off                                — never a win on tilers
          *    - EE cycle skip         = 1                 — mild CPU headroom
          *    - MTVU                   = device-aware      — only when >= 6 cores
+         *    - PS3 relaxed ZCULL sync = on               — fewer forced occlusion
+         *      syncs/queue flushes on tilers (safe with HW conditional rendering
+         *      disabled on Mali/Adreno/Turnip: no emulated predication involved)
          *  [mtvu] is passed in (from [com.armsx2.DeviceTier.mtvuDefault]) rather
          *  than read here so config/ stays free of Android context deps.
          *  NOTE: intentionally does NOT touch CAS — there is no CAS Settings
@@ -2517,6 +2520,9 @@ data class Settings(
             hwRov = false,              // ROV off
             eeCycleSkip = 1,
             mtvu = mtvu,
+            ps3 = base.ps3.copy(
+                relaxedZcull = true,    // fewer forced ZCULL syncs on tilers (PS3 core)
+            ),
         )
 
         /** Lenient parse — missing keys fall back to defaults so old saved

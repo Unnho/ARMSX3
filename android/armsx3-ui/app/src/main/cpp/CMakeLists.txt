@@ -159,8 +159,14 @@ target_link_libraries(savers log GLESv2 m)
 # The prebuilt libdiscord_partner_sdk.so ships in the .aar too; it is referenced
 # here as an IMPORTED target so the bridge links, and the .aar is what actually
 # packages it.
+#
+# The Social SDK is proprietary and distributed per-application from Discord's
+# developer portal, so a public checkout has neither the .aar nor this .so. That
+# is a supported configuration, not an error: Discord is opt-in and every use is
+# already behind DiscordNative.load(), so skip the bridge and the feature simply
+# reports itself unavailable at runtime.
 # ---------------------------------------------------------------------------
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/discord_sdk/arm64-v8a/libdiscord_partner_sdk.so")
     add_library(discord_partner_sdk SHARED IMPORTED)
     set_target_properties(discord_partner_sdk PROPERTIES
         IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/discord_sdk/arm64-v8a/libdiscord_partner_sdk.so)
