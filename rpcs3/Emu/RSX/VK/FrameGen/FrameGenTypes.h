@@ -23,7 +23,13 @@
 
 #include "util/types.hpp"
 #include "FrameGenConfig.h"
+// Upstream lsfg-vk Config.h. Only present when the (non-public) lsfg-vk-android tree is
+// checked out; every LSFG_* constant the port uses is defined locally as constexpr below,
+// so an absent LSFG tree must not fail the core build -- frame generation simply reports
+// itself unavailable at runtime.
+#if __has_include("Config.h")
 #include "Config.h"
+#endif
 
 #include <algorithm>
 #include <cstddef>
