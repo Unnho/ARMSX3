@@ -412,8 +412,21 @@ namespace vk
 #ifdef __ANDROID__
 			if (vk::android::using_custom_driver())
 			{
-				rsx_log.error("A custom Vulkan driver was requested, but the driver in use is Mali's own. "
-					"Custom driver packs are Adreno-only, so this session is running the SYSTEM driver.");
+				// A PanVK pack answering on Mali is legitimate: the experimental
+				// open driver, deliberately selected. Anything else answering
+				// Mali's own blob (e.g. a Turnip pack, which is Adreno-only, or a
+				// broken pack) means adrenotools fell back silently and this
+				// session is on the system driver.
+				if (get_driver_vendor() == driver_vendor::PANVK)
+				{
+					rsx_log.notice("Custom PanVK driver in use on Mali (experimental open driver). "
+						"Treat rendering issues as driver issues and always report which driver ran.");
+				}
+				else
+				{
+					rsx_log.error("A custom Vulkan driver was requested, but the driver in use is Mali's own. "
+						"It most likely failed to load and fell back silently; this session is running the SYSTEM driver.");
+				}
 			}
 #endif
 			rsx_log.notice("Mali GPU detected: tile-based path (no async compute, no passthrough DMA); "

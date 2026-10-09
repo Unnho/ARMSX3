@@ -266,8 +266,9 @@ public final class NativeApp {
      *
      * The JNI glue opens the driver with adrenotools_open_libvulkan and hands
      * the resulting handle to the core, which points its Vulkan dispatch table
-     * at it. Adreno only -- adrenotools patches Qualcomm's loader behaviour, and
-     * supportsCustomVulkanDriver() probes /dev/kgsl-3d0 for exactly that.
+     * at it. Turnip packs (Adreno) and PanVK packs (Mali, experimental) both
+     * load through adrenotools CUSTOM, and supportsCustomVulkanDriver() probes
+     * /dev/kgsl-3d0 and /dev/mali0 for exactly those two.
      *
      * MUST be called before the renderer creates its VkInstance. Afterwards the
      * table is bound and swapping under a live device would invalidate every
@@ -295,7 +296,7 @@ public final class NativeApp {
         }
     }
 
-    /** Whether this device can load a user-supplied Vulkan driver (Adreno only). */
+    /** Whether this device can load a user-supplied Vulkan driver (Adreno, or Mali for PanVK packs). */
     public static boolean supportsCustomVulkanDriver() {
         try {
             return net.rpcsx.RPCSX.Companion.getInstance().supportsCustomDriverLoading();

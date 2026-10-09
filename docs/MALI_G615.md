@@ -206,3 +206,28 @@ Save Log, no ADB needed) distinguishes the remaining mechanisms:
 first_observed vs last_observed), `Dubious query data pushed to cond render`
 (pending occlusion queries), video-memory pressure/eviction lines, or
 `wait_for_fence` errors. Send that log before any further renderer change.
+
+## 10. PanVK custom-driver experiment (UNVERIFIED)
+
+`panvk-kbase-android` (MIT): open Mesa PanVK for Mali-G615 v11 CSF, talking
+directly to `/dev/mali0`, distributed as `.adpkg.zip` (the adrenotools pack
+format this app already consumes). Deliberately NOT vendored here — it is a
+standalone driver with its own Mesa pin, patches and CI; the app-side change
+is only to allow selecting such a pack on Mali:
+
+- `supportsCustomDriverLoading` (native glue): `/dev/kgsl-3d0` OR `/dev/mali0`.
+  CUSTOM is a plain dlopen plus hooks, vendor-agnostic.
+- Driver manager: the "needs Adreno" wall now shows only where neither node
+  exists; Mali gets a PanVK recommendation (experimental, manual `.adpkg`
+  import — no releases-page source exists yet).
+- Startup log is vendor-aware: custom requested + PanVK answering = notice
+  (legitimate experimental driver); custom requested + Mali blob answering =
+  error (silent fallback, e.g. Turnip pack on Mali).
+
+Default stays the system driver; PanVK is strictly opt-in per selection.
+A/B protocol: same save, same scene, same settings, blob vs PanVK, capture
+script running for both; compare FPS, frametime stability, correctness, and
+which driver the emulog names. Their own evidence covers loader-level
+(import/select/setCustomDriver) only — no emulator game boot is proven
+anywhere yet. If PanVK loses, the gating change stands on its own and costs
+nothing at runtime.

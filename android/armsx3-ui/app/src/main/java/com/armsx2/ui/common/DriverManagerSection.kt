@@ -91,8 +91,8 @@ fun DriverManagerSection() {
         SectionTitle(str("backend.gpuDriver.label"), str("backend.gpuDriver.description"))
 
         // Eden-style hint: the detected GPU and the best custom-driver source for it. Adreno
-        // maps to a tuned Turnip pack; other vendors (Mali/Xclipse/PowerVR) run the built-in
-        // system driver best. Probes the system GL_RENDERER once (cached).
+        // maps to a tuned Turnip pack, Mali to the experimental PanVK pack; other vendors
+        // (Xclipse/PowerVR) run the built-in system driver best. Probes the system GL_RENDERER once (cached).
         val gpuModel = remember { com.armsx2.GpuInfo.rendererName() }
         val gpuRec = remember(gpuModel) { com.armsx2.GpuInfo.recommendation(gpuModel) }
         Surface(
@@ -113,9 +113,11 @@ fun DriverManagerSection() {
             }
         }
 
-        // Adreno-only: adrenotools works by patching Qualcomm loader behaviour,
-        // so on Mali/PowerVR/Xclipse there is nothing to swap and the list would
-        // be a trap. Say so rather than let an install look like it took effect.
+        // Adreno and Mali: Turnip packs patch Qualcomm loader behaviour and PanVK
+        // packs replace the Mali blob through the same adrenotools CUSTOM path, so
+        // both vendors get the list. Elsewhere (PowerVR/Xclipse/...) there is
+        // nothing to swap and the list would be a trap. Say so rather than let
+        // an install look like it took effect.
         if (!com.armsx3.NativeApp.supportsCustomVulkanDriver()) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
@@ -123,7 +125,7 @@ fun DriverManagerSection() {
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    "Custom Vulkan drivers need an Adreno GPU. This device will " +
+                    "Custom Vulkan drivers need an Adreno or Mali GPU. This device will " +
                         "keep using its system driver.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
